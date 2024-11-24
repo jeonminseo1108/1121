@@ -27,18 +27,29 @@
 #define MAX_BG_PRO 16
 #define MAX_FG_PRO 16
 
+// TODO-start: data structures in snush.h
+/**
+ * BackgroundManager:
+ * 
+ * Structure to manage background processes.
+ * 
+ * Fields:
+ *   - bg_array: Array storing the PIDs of currently running background processes.
+ *   - bg_count: Integer representing the count of active background processes.
+ * 
+ * Notes:
+ *   - `MAX_BG_PRO`: Maximum number of background processes allowed.
+ *   - `bg_manager`: Global instance of BackgroundManager used to track background jobs.
+ */
+typedef struct {
+    pid_t bg_array[MAX_BG_PRO];
+    int bg_count;
+} BackgroundManager;
 
-/*
-        //
-        // TODO-start: data structures in snush.h
-        //
+extern BackgroundManager bg_manager;
 
-        You can add your own data structures to manage the background processes
-        You can also add macros to manage background processes
-
-        //
-        // TODO-end: data structures in snush.h
-        //
-*/
+//
+// TODO-end: data structures in snush.h
+//
 
 #endif /* _SNUSH_H_ */

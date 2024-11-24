@@ -10,64 +10,53 @@
 #include "lexsyn.h"
 #include "snush.h"
 
-/*
-        //
-        // TODO-start: global variables in snush.c
-        //
-
-        You may add global variables for handling background processes
-
-        //
-        // TODO-end: global variables in snush.c
-        //
-*/
+// TODO-start: global variables in snush.c
+//You may add global variables for handling background processes
 int total_bg_cnt;
+
+BackgroundManager bg_manager = { .bg_array = {0}, .bg_count = 0 };
+
+// TODO-end: global variables in snush.c
 
 /*---------------------------------------------------------------------------*/
 void cleanup() {
-    /*
-        //
-        // TODO-start: cleanup() in snush.c
-        //
-
-        You need to free dynamically allocated data structures
-
-        //
-        // TODO-end: cleanup() in snush.c
-        //
-    */
+    //todo 
+    for (int i = 0; i < bg_manager.bg_count; i++) {
+        if (kill(bg_manager.bg_array[i], SIGKILL) == 0) {
+            printf("Forcefully terminated background process [%d].\n",
+                   bg_manager.bg_array[i]);
+        }
+    }
 }
 /*---------------------------------------------------------------------------*/
 void check_bg_status() {
-    /*
-        //
-        // TODO-start: check_bg_status() in snush.c
-        //
-
-        The message "background process done" is not printed by the sigzombie_handler as soon as it is finished, but is printed here if there is any input at the command prompt.
-
-        //
-        // TODO-end: check_bg_status() in snush.c
-        //
-    */
+    //The message "background process done" is not printed by the sigzombie_handler as soon as it is finished, 
+    //but is printed here if there is any input at the command prompt.
+    int status;
+    for (int i = 0; i < bg_manager.bg_count; i++) {
+        pid_t pid = waitpid(bg_manager.bg_array[i], &status, WNOHANG);
+        if (pid > 0) {
+            printf("Background process [%d] done.\n", pid);
+            bg_manager.bg_array[i] = bg_manager.bg_array[--bg_manager.bg_count];
+        }
+    }
 }
 /*---------------------------------------------------------------------------*/
 /* Whenever a child process terminates, this handler handles all zombies. */
 static void sigzombie_handler(int signo) {
     pid_t pid;
     int stat;
-
+    //todo
     if (signo == SIGCHLD) {
-        
-        while((pid = waitpid(-1, &stat, WNOHANG)) > 0) {
-            //
-            // TODO-start: sigzombie_handler() in snush.c start 
-            //
-            
-
-            //
-            // TODO-end: sigzombie_handler() in snush.c end
-            // 
+        while ((pid = waitpid(-1, &stat, WNOHANG)) > 0) {
+            for (int i = 0; i < bg_manager.bg_count; i++) {
+                if (bg_manager.bg_array[i] == pid) {
+                    printf("[%d] Done background process group\n", pid);
+                    bg_manager.bg_array[i] =
+                        bg_manager.bg_array[--bg_manager.bg_count];
+                    break;
+                }
+            }
         }
 
         if (pid < 0 && errno != ECHILD && errno != EINTR) {
@@ -190,20 +179,16 @@ int main(int argc, char *argv[]) {
 
     /* Initialize variables for background processes */
     total_bg_cnt = 0;
+    
+    //
+    // TODO-start: Initializing in snush.c
+    //
 
-    /*
-        //
-        // TODO-start: Initializing in snush.c
-        //
+    bg_manager.bg_count = 0;
 
-         You should initialize or allocate your own global variables 
-        for handling background processes
-
-        //
-        // TODO-end: Initializing in snush.c
-        //
-
-    */
+    //
+    // TODO-end: Initializing in snush.c
+    //
 
     sigemptyset(&sigset);
     sigaddset(&sigset, SIGINT);
